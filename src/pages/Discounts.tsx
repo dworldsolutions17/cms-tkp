@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Edit, Trash2, Tag, Plus, Loader, Upload, Download, RefreshCw, X } from 'lucide-react';
 import { discountService, type Discount } from '../services/discountService';
 import Pagination from '../components/ui/Pagination';
+import { formatDate, toDateInputValue } from '../utils/dateUtils';
 
 const Discounts = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -140,12 +141,12 @@ const Discounts = () => {
     setFormData({
       code: discount.code,
       type: discount.type,
-      value: discount.value.toString(),
-      minOrder: discount.minOrder.toString(),
-      maxDiscount: discount.maxDiscount.toString(),
-      usageLimit: discount.usageLimit.toString(),
+      value: discount.value?.toString() ?? '',
+      minOrder: discount.minOrder?.toString() ?? '',
+      maxDiscount: discount.maxDiscount?.toString() ?? '',
+      usageLimit: discount.usageLimit?.toString() ?? '',
       status: discount.status,
-      expiry: discount.expiry.split('T')[0], // Format date for input
+      expiry: toDateInputValue(discount.expiry),
     });
     setShowEditModal(true);
   };
@@ -262,8 +263,20 @@ const Discounts = () => {
     );
   }
 
-  const getStatusColor = (status: string) => {
-    return status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+  const getStatusColor = (discount: Discount) => {
+    if (discount.status.toLowerCase() !== 'active') {
+      return 'bg-red-100 text-red-700';
+    }
+    if (discount.expiry && new Date(discount.expiry) < new Date()) {
+      return 'bg-red-100 text-red-700';
+    }
+    return 'bg-green-100 text-green-700';
+  };
+
+  const getStatusLabel = (discount: Discount) => {
+    if (discount.status.toLowerCase() !== 'active') return discount.status;
+    if (discount.expiry && new Date(discount.expiry) < new Date()) return 'Expired';
+    return 'Active';
   };
 
   return (
@@ -452,12 +465,12 @@ const Discounts = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {new Date(discount.expiry).toLocaleDateString()}
+                        {formatDate(discount.expiry)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(discount.status)}`}>
-                          {discount.status}
-                        </span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(discount)}`}>
+                            {getStatusLabel(discount)}
+                          </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex gap-2">

@@ -4,6 +4,7 @@ import { productService, type Product } from '../services/productService';
 import { categoryService, type Category } from '../services/categoryService';
 import { uploadService } from '../services/uploadService';
 import Pagination from '../components/ui/Pagination';
+import { formatDateTime } from '../utils/dateUtils';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -902,11 +903,11 @@ const Products = () => {
                   </div>
                   <div className="border-t pt-4">
                     <p className="text-sm text-gray-500 mb-1">Created At</p>
-                    <p className="text-gray-700">{new Date(selectedProduct.createdAt).toLocaleString()}</p>
+                    <p className="text-gray-700">{formatDateTime(selectedProduct.createdAt)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Last Updated</p>
-                    <p className="text-gray-700">{new Date(selectedProduct.updatedAt).toLocaleString()}</p>
+                    <p className="text-gray-700">{formatDateTime(selectedProduct.updatedAt)}</p>
                   </div>
                 </div>
               </div>

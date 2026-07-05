@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Plus, Edit, Trash2, RefreshCw, Loader, X, FolderTree, Upload } from 'lucide-react';
 import { categoryService, type Category } from '../services/categoryService';
 import { uploadService } from '../services/uploadService';
+import { formatDate } from '../utils/dateUtils';
 
 const Categories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -283,7 +284,7 @@ const Categories = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                      {new Date(category.createdAt).toLocaleDateString()}
+                      {formatDate(category.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex gap-3">

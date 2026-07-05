@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Mail, Phone, MapPin, Loader, Users, RefreshCw, Upload, Download, Plus, Edit, Trash2, Eye, X } from 'lucide-react';
 import { customerService, type Customer } from '../services/customerService';
 import Pagination from '../components/ui/Pagination';
+import { formatDate, formatDateTime } from '../utils/dateUtils';
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -414,7 +415,7 @@ const Customers = () => {
                         Rs.{(customer.totalSpent || 0).toLocaleString('en-PK')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {new Date(customer.createdAt).toLocaleDateString()}
+                        {formatDate(customer.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex gap-2">
@@ -715,11 +716,11 @@ const Customers = () => {
               <div className="border-t pt-4 grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Joined</p>
-                  <p className="text-gray-700">{new Date(selectedCustomer.createdAt).toLocaleString()}</p>
+                  <p className="text-gray-700">{formatDateTime(selectedCustomer.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Last Updated</p>
-                  <p className="text-gray-700">{new Date(selectedCustomer.updatedAt).toLocaleString()}</p>
+                  <p className="text-gray-700">{formatDateTime(selectedCustomer.updatedAt)}</p>
                 </div>
               </div>
 

@@ -24,7 +24,7 @@ export const uploadService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    return response.data as { url: string };
+    return response.data?.data as { url: string };
   },
 
   multiple: async (files: File[], folder: UploadFolder) => {
@@ -36,7 +36,7 @@ export const uploadService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    return response.data as { urls: string[] };
+    return response.data?.data as { urls: string[] };
   },
 
   resolveUrl: resolveUploadUrl,

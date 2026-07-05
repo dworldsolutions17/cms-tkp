@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Eye, Loader, RefreshCw, Upload, Download, Trash2, X, Package, User, DollarSign } from 'lucide-react';
 import { orderService, type Order } from '../services/orderService';
 import Pagination from '../components/ui/Pagination';
+import { formatDate, formatDateTime } from '../utils/dateUtils';
 
 type ManageStatus = 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Rejected' | 'Cancelled';
 
@@ -138,7 +139,7 @@ const Orders = () => {
         rejectionReason: fullOrder.rejectionReason || '',
         trackingNumber: fullOrder.trackingNumber || '',
         trackingUrl: fullOrder.trackingUrl || '',
-        estimatedDelivery: fullOrder.estimatedDelivery ? fullOrder.estimatedDelivery.slice(0, 10) : '',
+        estimatedDelivery: fullOrder.estimatedDelivery?.slice(0, 10) || '',
       });
       setShowDetailModal(true);
     } catch {
@@ -150,7 +151,7 @@ const Orders = () => {
         rejectionReason: order.rejectionReason || '',
         trackingNumber: order.trackingNumber || '',
         trackingUrl: order.trackingUrl || '',
-        estimatedDelivery: order.estimatedDelivery ? order.estimatedDelivery.slice(0, 10) : '',
+        estimatedDelivery: order.estimatedDelivery?.slice(0, 10) || '',
       });
       setShowDetailModal(true);
     }
@@ -227,7 +228,7 @@ const Orders = () => {
         rejectionReason: refreshedOrder.rejectionReason || '',
         trackingNumber: refreshedOrder.trackingNumber || '',
         trackingUrl: refreshedOrder.trackingUrl || '',
-        estimatedDelivery: refreshedOrder.estimatedDelivery ? refreshedOrder.estimatedDelivery.slice(0, 10) : '',
+        estimatedDelivery: refreshedOrder.estimatedDelivery?.slice(0, 10) || '',
       });
 
       setSuccessMessage(`Order #${selectedOrder.id} updated successfully.`);
@@ -424,7 +425,7 @@ const Orders = () => {
                           <p className="text-sm text-gray-500">{order.customer?.email || 'N/A'}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatDate(order.createdAt)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-600">
                         {typeof order.items === 'number' 
                           ? order.items 
@@ -511,7 +512,7 @@ const Orders = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-500 mb-1">Order Date</p>
-                  <p className="font-semibold text-gray-900">{new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
+                  <p className="font-semibold text-gray-900">{formatDate(selectedOrder.createdAt)}</p>
                 </div>
               </div>
 
@@ -648,11 +649,11 @@ const Orders = () => {
               <div className="border-t pt-4 grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Created At</p>
-                  <p className="text-gray-700">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                  <p className="text-gray-700">{formatDateTime(selectedOrder.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Last Updated</p>
-                  <p className="text-gray-700">{new Date(selectedOrder.updatedAt).toLocaleString()}</p>
+                  <p className="text-gray-700">{formatDateTime(selectedOrder.updatedAt)}</p>
                 </div>
               </div>
 

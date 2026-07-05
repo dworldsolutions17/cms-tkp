@@ -12,10 +12,21 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Filter,
 } from 'lucide-react';
 import ReactApexChart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
 import { statsService, type DashboardStats } from '../services/statsService';
+import api from '../services/api';
+
+const dateFilters = [
+  { label: 'All Time', period: 'all', revenueDays: 12 },
+  { label: 'Today', period: 'today', revenueDays: 1 },
+  { label: 'Last 7 Days', period: 'days', value: 7, revenueDays: 7 },
+  { label: 'Last 30 Days', period: 'days', value: 30, revenueDays: 30 },
+  { label: 'This Month', period: 'month', revenueDays: 30 },
+  { label: 'This Year', period: 'year', revenueDays: 12 },
+];
 
 const Dashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -32,14 +43,23 @@ const Dashboard = () => {
     cancelledOrders: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [revenueData, setRevenueData] = useState<Array<{period: string, revenue: number, orders: number}>>([]);
+  const [dateFilter, setDateFilter] = useState(dateFilters[0]);
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [dateFilter]);
 
   const fetchStats = async () => {
+    setLoading(true);
+    const statsParams: { period?: string; value?: number } = {};
+    if (dateFilter.period !== 'all') {
+      statsParams.period = dateFilter.period;
+      if (dateFilter.value) statsParams.value = dateFilter.value;
+    }
+
     try {
-      const response = await statsService.getDashboardStats();
+      const response = await statsService.getDashboardStats(statsParams);
       
       // Handle response format (with or without data wrapper)
       const statsData = response.data || response;
@@ -59,6 +79,18 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+
+    try {
+      const revResponse = await api.get('/dashboard/revenue', { params: { period: 'monthly', days: dateFilter.revenueDays } });
+      const responseBody = revResponse.data;
+      const revData = responseBody?.data || responseBody || [];
+      setRevenueData(Array.isArray(revData) ? revData : []);
+      if (revData.length === 0) {
+        console.log('No revenue data returned from API. Response:', responseBody);
+      }
+    } catch (error) {
+      console.error('Error fetching revenue data:', error);
     } finally {
       setLoading(false);
     }
@@ -94,7 +126,12 @@ const Dashboard = () => {
     },
     colors: ['#3b82f6', '#10b981'],
     xaxis: {
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      categories: revenueData.length > 0
+        ? revenueData.map(d => {
+            const date = new Date(d.period);
+            return date.toLocaleString('en-US', { month: 'short' });
+          })
+        : [],
       labels: {
         style: {
           colors: '#6b7280',
@@ -136,16 +173,9 @@ const Dashboard = () => {
     },
   };
 
-  const revenueChartSeries = [
-    {
-      name: 'Revenue',
-      data: [45000, 52000, 48000, 61000, 55000, 67000, 72000, 68000, 75000, 82000, 78000, 85000],
-    },
-    {
-      name: 'Target',
-      data: [50000, 55000, 53000, 60000, 58000, 65000, 70000, 72000, 76000, 80000, 82000, 88000],
-    },
-  ];
+  const revenueChartSeries = revenueData.length > 0
+    ? [{ name: 'Revenue', data: revenueData.map(d => d.revenue || 0) }]
+    : [];
 
   // Order Status Donut Chart Configuration
   const orderStatusChartOptions: ApexOptions = {
@@ -271,18 +301,21 @@ const Dashboard = () => {
     },
   ];
 
+  const filterLabel = dateFilter.label;
+  const filteredSubtext = dateFilter.period === 'all' ? 'All time' : filterLabel;
+
   const statsDataCards = [
-    { label: 'Total Products', value: stats.totalProducts, icon: Package, color: 'bg-blue-500', subtext: 'In catalog' },
-    { label: 'Total Orders', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-emerald-500', subtext: 'All time' },
-    { label: 'Total Customers', value: stats.totalCustomers, icon: Users, color: 'bg-indigo-500', subtext: 'Registered' },
-    { label: 'Total Revenue', value: `PKR ${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-500', subtext: 'All time' },
+    { label: 'Total Products', value: stats.totalProducts, icon: Package, color: 'bg-blue-500', subtext: filteredSubtext },
+    { label: 'Total Orders', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-emerald-500', subtext: filteredSubtext },
+    { label: 'Total Customers', value: stats.totalCustomers, icon: Users, color: 'bg-indigo-500', subtext: filteredSubtext },
+    { label: 'Total Revenue', value: `PKR ${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-500', subtext: filteredSubtext },
     { label: 'Today Revenue', value: `PKR ${stats.todayRevenue.toLocaleString()}`, icon: TrendingUp, color: 'bg-cyan-500', subtext: 'Today' },
     { label: 'Active Discounts', value: stats.activeDiscounts, icon: Tag, color: 'bg-purple-500', subtext: 'Running' },
-    { label: 'Low Stock Items', value: stats.lowStockProducts, icon: AlertTriangle, color: 'bg-orange-500', subtext: '≤ 5 units' },
-    { label: 'Out of Stock', value: stats.outOfStockProducts, icon: XCircle, color: 'bg-red-500', subtext: '0 units' },
-    { label: 'Pending Orders', value: stats.pendingOrders, icon: Clock, color: 'bg-blue-600', subtext: 'Awaiting action' },
-    { label: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'bg-green-600', subtext: 'Delivered' },
-    { label: 'Cancelled Orders', value: stats.cancelledOrders, icon: XCircle, color: 'bg-red-600', subtext: 'Cancelled' },
+    { label: 'Low Stock Items', value: stats.lowStockProducts, icon: AlertTriangle, color: 'bg-orange-500', subtext: 'Current' },
+    { label: 'Out of Stock', value: stats.outOfStockProducts, icon: XCircle, color: 'bg-red-500', subtext: 'Current' },
+    { label: 'Pending Orders', value: stats.pendingOrders, icon: Clock, color: 'bg-blue-600', subtext: filteredSubtext },
+    { label: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'bg-green-600', subtext: filteredSubtext },
+    { label: 'Cancelled Orders', value: stats.cancelledOrders, icon: XCircle, color: 'bg-red-600', subtext: filteredSubtext },
   ];
 
   if (loading) {
@@ -296,9 +329,41 @@ const Dashboard = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome to The Kidz Planet Admin Panel</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome to The Kidz Planet Admin Panel</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <select
+              value={JSON.stringify({ period: dateFilter.period, value: dateFilter.value })}
+              onChange={(e) => {
+                const selected = dateFilters.find(
+                  f => JSON.stringify({ period: f.period, value: (f as any).value }) === e.target.value
+                );
+                if (selected) setDateFilter(selected);
+              }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary/50 focus:border-primary"
+            >
+              {dateFilters.map((f) => (
+                <option
+                  key={f.label}
+                  value={JSON.stringify({ period: f.period, value: (f as any).value })}
+                >
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={fetchStats}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
+            Refresh Stats
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats Grid */}
@@ -323,12 +388,22 @@ const Dashboard = () => {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Revenue Trend</h2>
-            <ReactApexChart
-              options={revenueChartOptions}
-              series={revenueChartSeries}
-              type="area"
-              height={350}
-            />
+            {revenueData.length > 0 ? (
+              <ReactApexChart
+                options={revenueChartOptions}
+                series={revenueChartSeries}
+                type="area"
+                height={350}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-[350px] text-gray-400">
+                <div className="text-center">
+                  <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-lg font-medium">No revenue data available</p>
+                  <p className="text-sm mt-1">Completed orders will appear here</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -27,8 +27,8 @@ export interface DashboardStats {
 }
 
 export const statsService = {
-  getDashboardStats: async () => {
-    const response = await api.get('/dashboard/stats');
+  getDashboardStats: async (params?: { period?: string; value?: number }) => {
+    const response = await api.get('/dashboard/stats', { params });
     return response.data;
   },
 };
