@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, Tag, Layers, FolderTree, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Tag, Layers, FolderTree, LogOut, Menu, X, MessageSquare } from 'lucide-react';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -15,6 +15,7 @@ const AdminLayout = () => {
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/categories', icon: FolderTree, label: 'Categories' },
     { path: '/discounts', icon: Tag, label: 'Discounts' },
+    { path: '/chat-history', icon: MessageSquare, label: 'Chat History' },
   ];
 
   const handleLogout = () => {

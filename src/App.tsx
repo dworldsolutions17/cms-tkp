@@ -9,6 +9,7 @@ import Orders from './pages/Orders';
 import Customers from './pages/Customers';
 import Discounts from './pages/Discounts';
 import Categories from './pages/Categories';
+import ChatHistory from './pages/ChatHistory';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -31,6 +32,7 @@ function App() {
           <Route path="customers" element={<Customers />} />
           <Route path="discounts" element={<Discounts />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="chat-history" element={<ChatHistory />} />
         </Route>
       </Routes>
     </Router>
